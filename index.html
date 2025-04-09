@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정렬 알고리즘 시뮬레이션 및 비교</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 기본 폰트 및 스타일 설정 */
+        body {
+            font-family: 'Inter', sans-serif; /* Inter 폰트 적용 */
+            background-color: #f8fafc; /* 밝은 회색 배경 */
+        }
+        /* 시각화 막대 스타일 */
+        .bar {
+            display: inline-block;
+            background-color: #60a5fa; /* 기본 파란색 */
+            margin: 0 1px;
+            border-radius: 4px 4px 0 0; /* 위쪽 모서리 둥글게 */
+            transition: height 0.3s ease, background-color 0.3s ease; /* 부드러운 전환 효과 */
+            vertical-align: bottom; /* 막대를 아래 정렬 */
+        }
+        /* 비교 중인 막대 스타일 */
+        .bar-comparing {
+            background-color: #facc15; /* 노란색 */
+        }
+        /* 교환 중인 막대 스타일 */
+        .bar-swapping {
+            background-color: #f87171; /* 빨간색 */
+        }
+        /* 정렬 완료된 막대 스타일 */
+        .bar-sorted {
+            background-color: #4ade80; /* 녹색 */
+        }
+        /* 피벗 막대 스타일 (퀵 정렬용) */
+        .bar-pivot {
+            background-color: #a78bfa; /* 보라색 */
+        }
+        /* 테이블 스타일 */
+        th, td {
+            border: 1px solid #e5e7eb; /* 연한 회색 테두리 */
+            padding: 8px 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #f3f4f6; /* 더 연한 회색 배경 */
+            font-weight: 600;
+        }
+        /* 코드 블록 스타일 */
+        pre {
+            background-color: #1f2937; /* 어두운 배경 */
+            color: #d1d5db; /* 밝은 회색 텍스트 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto; /* 가로 스크롤 */
+            font-family: 'Monospace', monospace; /* 고정폭 폰트 */
+        }
+        code {
+             font-family: 'Monospace', monospace; /* 고정폭 폰트 */
+        }
+        /* 버튼 비활성화 스타일 */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Lucide 아이콘 크기 조정 */
+        .icon {
+            width: 1rem;
+            height: 1rem;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.25rem;
+        }
+    </style>
+    </head>
+<body class="p-4 md:p-8">
+
+    <header class="text-center mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800">정렬 알고리즘 시뮬레이션 및 비교</h1>
+        <p class="text-gray-600 mt-2">다양한 정렬 알고리즘의 작동 원리를 시각적으로 배우고 비교해 보세요.</p>
+    </header>
+
+    <main class="space-y-8">
+        <section id="controls" class="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 p-4 bg-white rounded-lg shadow-md sticky top-0 z-10">
+            <div class="flex items-center gap-2">
+                <label for="algorithm-select" class="font-semibold text-gray-700">알고리즘:</label>
+                <select id="algorithm-select" class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="bubble">버블 정렬</option>
+                    <option value="selection">선택 정렬</option>
+                    <option value="insertion">삽입 정렬</option>
+                    <option value="merge">병합 정렬</option>
+                    <option value="quick">퀵 정렬</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="size-slider" class="font-semibold text-gray-700">배열 크기:</label>
+                <input type="range" id="size-slider" min="5" max="50" value="20" class="cursor-pointer w-24 md:w-32 accent-blue-500">
+                <span id="size-value" class="font-semibold text-blue-600 w-8 text-center">20</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="speed-slider" class="font-semibold text-gray-700">속도:</label>
+                <input type="range" id="speed-slider" min="50" max="1000" value="500" step="50" class="cursor-pointer w-24 md:w-32 accent-blue-500">
+                <span id="speed-value" class="font-semibold text-blue-600 w-12 text-center">500ms</span>
+            </div>
+            <div class="flex gap-2 mt-2 sm:mt-0">
+                <button id="reset-button" class="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition duration-200 flex items-center gap-1 shadow">
+                    <img src="https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/rotate-ccw.svg" class="icon" alt="리셋 아이콘"/> 리셋
+                </button>
+                <button id="start-button" class="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-200 flex items-center gap-1 shadow">
+                    <img src="https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/play.svg" class="icon" alt="시작 아이콘"/> 시작
+                </button>
+                 <button id="pause-button" class="px-3 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition duration-200 flex items-center gap-1 shadow hidden">
+                     <img src="https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/pause.svg" class="icon" alt="일시정지 아이콘"/> 일시정지
+                </button>
+                 <button id="resume-button" class="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-200 flex items-center gap-1 shadow hidden">
+                     <img src="https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/play.svg" class="icon" alt="재개 아이콘"/> 재개
+                </button>
+            </div>
+        </section>
+
+        <section id="simulation" class="mt-6 p-4 border border-gray-200 rounded-lg shadow-md bg-white min-h-[300px]">
+            <h2 id="simulation-title" class="text-xl font-semibold mb-4 text-center text-gray-700">알고리즘을 선택하고 시작 버튼을 누르세요.</h2>
+            <div id="visualization-area" class="w-full h-64 md:h-80 flex justify-center items-end border border-gray-200 rounded bg-gray-50 p-2 overflow-hidden">
+                </div>
+            <div id="explanation-area" class="mt-4 text-center text-gray-600 min-h-[2em]">
+                배열 크기와 속도를 조절한 후, 원하는 정렬 알고리즘을 선택하고 '시작' 버튼을 누르세요.
+            </div>
+        </section>
+
+        <section id="comparison" class="p-4 border border-gray-200 rounded-lg shadow-md bg-white">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">알고리즘 비교</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto border-collapse">
+                    <thead>
+                        <tr>
+                            <th>알고리즘</th>
+                            <th>시간 복잡도 (최선)</th>
+                            <th>시간 복잡도 (평균)</th>
+                            <th>시간 복잡도 (최악)</th>
+                            <th>공간 복잡도</th>
+                            <th>안정성</th>
+                            <th>장점</th>
+                            <th>단점</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>버블 정렬</td>
+                            <td>O(n)</td>
+                            <td>O(n²)</td>
+                            <td>O(n²)</td>
+                            <td>O(1)</td>
+                            <td>Stable</td>
+                            <td>구현이 매우 간단함, 안정 정렬</td>
+                            <td>데이터가 많을수록 매우 비효율적</td>
+                        </tr>
+                        <tr>
+                            <td>선택 정렬</td>
+                            <td>O(n²)</td>
+                            <td>O(n²)</td>
+                            <td>O(n²)</td>
+                            <td>O(1)</td>
+                            <td>Unstable</td>
+                            <td>구현이 간단함, 자료 이동 횟수가 적음</td>
+                            <td>데이터가 많을수록 비효율적, 불안정 정렬</td>
+                        </tr>
+                        <tr>
+                            <td>삽입 정렬</td>
+                            <td>O(n)</td>
+                            <td>O(n²)</td>
+                            <td>O(n²)</td>
+                            <td>O(1)</td>
+                            <td>Stable</td>
+                            <td>데이터가 거의 정렬된 경우 매우 효율적, 안정 정렬</td>
+                            <td>데이터가 많고 역순에 가까울수록 비효율적</td>
+                        </tr>
+                        <tr>
+                            <td>병합 정렬</td>
+                            <td>O(n log n)</td>
+                            <td>O(n log n)</td>
+                            <td>O(n log n)</td>
+                            <td>O(n)</td>
+                            <td>Stable</td>
+                            <td>항상 O(n log n) 성능 보장, 안정 정렬</td>
+                            <td>추가적인 메모리 공간(O(n)) 필요</td>
+                        </tr>
+                        <tr>
+                            <td>퀵 정렬</td>
+                            <td>O(n log n)</td>
+                            <td>O(n log n)</td>
+                            <td>O(n²)</td>
+                            <td>O(log n) ~ O(n)</td>
+                            <td>Unstable</td>
+                            <td>평균적으로 매우 빠름, 추가 메모리 공간 적게 사용 (평균)</td>
+                            <td>최악의 경우 O(n²) 성능, 불안정 정렬, 피벗 선택 중요</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+             <p class="mt-4 text-sm text-gray-600">
+                * **시간 복잡도**: 알고리즘이 입력 크기(n)에 따라 실행되는 데 걸리는 시간을 나타냅니다. 숫자가 작을수록 효율적입니다.<br>
+                * **공간 복잡도**: 알고리즘이 실행되는 동안 사용하는 추가적인 메모리 공간의 양을 나타냅니다.<br>
+                * **안정성 (Stable)**: 정렬 후에도 값이 같은 요소들의 상대적인 순서가 유지되는지 여부를 나타냅니다.
+            </p>
+        </section>
+
+        <section id="code-examples" class="p-4 border border-gray-200 rounded-lg shadow-md bg-white">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Python 코드 예시</h2>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-700">버블 정렬 (Bubble Sort)</h3>
+                    <pre><code class="language-python">
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+        # 마지막 i개 요소는 이미 정렬됨
+        for j in range(0, n - i - 1):
+            # 인접한 두 요소를 비교하여 필요시 교환
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        # 이번 패스에서 교환이 없었다면 이미 정렬된 상태
+        if not swapped:
+            break
+    return arr
+                    </code></pre>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-700">선택 정렬 (Selection Sort)</h3>
+                    <pre><code class="language-python">
+def selection_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        # 현재 인덱스를 최소값의 인덱스로 가정
+        min_idx = i
+        # i+1부터 끝까지 탐색하며 최소값 인덱스 찾기
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        # 찾은 최소값과 현재 위치(i)의 값을 교환
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+    return arr
+                    </code></pre>
+                </div>
+                 <div>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-700">삽입 정렬 (Insertion Sort)</h3>
+                    <pre><code class="language-python">
+def insertion_sort(arr):
+    n = len(arr)
+    # 첫 번째 요소는 이미 정렬된 것으로 간주 (i=1부터 시작)
+    for i in range(1, n):
+        key = arr[i] # 현재 삽입할 요소
+        j = i - 1
+        # key보다 큰 요소들을 오른쪽으로 한 칸씩 이동
+        while j >= 0 and key < arr[j]:
+            arr[j + 1] = arr[j]
+            j -= 1
+        # 적절한 위치에 key 삽입
+        arr[j + 1] = key
+    return arr
+                    </code></pre>
+                </div>
+                 <div>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-700">병합 정렬 (Merge Sort)</h3>
+                    <pre><code class="language-python">
+def merge_sort(arr):
+    if len(arr) > 1:
+        mid = len(arr) // 2 # 중간점 찾기
+        left_half = arr[:mid] # 왼쪽 부분 배열
+        right_half = arr[mid:] # 오른쪽 부분 배열
+
+        # 재귀적으로 각 부분을 정렬
+        merge_sort(left_half)
+        merge_sort(right_half)
+
+        # 정렬된 두 부분을 병합
+        i = j = k = 0 # i: left_half 인덱스, j: right_half 인덱스, k: arr 인덱스
+        while i < len(left_half) and j < len(right_half):
+            if left_half[i] < right_half[j]:
+                arr[k] = left_half[i]
+                i += 1
+            else:
+                arr[k] = right_half[j]
+                j += 1
+            k += 1
+
+        # 남은 요소들 처리
+        while i < len(left_half):
+            arr[k] = left_half[i]
+            i += 1
+            k += 1
+        while j < len(right_half):
+            arr[k] = right_half[j]
+            j += 1
+            k += 1
+    return arr
+                    </code></pre>
+                </div>
+                 <div>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-700">퀵 정렬 (Quick Sort)</h3>
+                    <pre><code class="language-python">
+def quick_sort(arr):
+    # 내부 함수로 재귀 구현 (시작, 끝 인덱스 사용)
+    def _quick_sort_recursive(items, low, high):
+        if low < high:
+            # 분할 (Partition) 후 피벗 위치 반환
+            pivot_index = _partition(items, low, high)
+            # 피벗 기준 왼쪽 부분 배열 정렬
+            _quick_sort_recursive(items, low, pivot_index - 1)
+            # 피벗 기준 오른쪽 부분 배열 정렬
+            _quick_sort_recursive(items, pivot_index + 1, high)
+
+    # 분할 함수 (Hoare partition scheme 사용 예시)
+    def _partition(items, low, high):
+        pivot = items[low] # 첫 번째 요소를 피벗으로 선택 (다양한 전략 가능)
+        left = low + 1
+        right = high
+
+        done = False
+        while not done:
+            # 왼쪽에서 피벗보다 큰 값 찾기
+            while left <= right and items[left] <= pivot:
+                left += 1
+            # 오른쪽에서 피벗보다 작은 값 찾기
+            while right >= left and items[right] >= pivot:
+                right -= 1
+
+            if right < left: # 인덱스가 엇갈리면 분할 완료
+                done = True
+            else: # 찾은 두 값을 교환
+                items[left], items[right] = items[right], items[left]
+
+        # 피벗과 오른쪽 포인터 위치의 값을 교환하여 피벗 위치 확정
+        items[low], items[right] = items[right], items[low]
+        return right # 피벗의 최종 위치 반환
+
+    # 실제 정렬 시작
+    _quick_sort_recursive(arr, 0, len(arr) - 1)
+    return arr
+
+                    </code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="use-cases" class="p-4 border border-gray-200 rounded-lg shadow-md bg-white">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">활용 사례</h2>
+            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                <li><strong>버블 정렬 (Bubble Sort):</strong>
+                    <ul>
+                        <li>- 교육적인 목적으로 알고리즘의 기본 원리를 설명할 때 주로 사용됩니다.</li>
+                        <li>- 데이터 크기가 매우 작거나, 코드를 극도로 단순하게 유지해야 할 때 제한적으로 사용될 수 있습니다.</li>
+                    </ul>
+                </li>
+                <li><strong>선택 정렬 (Selection Sort):</strong>
+                     <ul>
+                        <li>- 버블 정렬과 마찬가지로 교육용으로 많이 쓰입니다.</li>
+                        <li>- 쓰기(swap) 연산이 비용이 많이 드는 경우 (예: 플래시 메모리)에 고려될 수 있습니다 (이론적으로).</li>
+                    </ul>
+                </li>
+                <li><strong>삽입 정렬 (Insertion Sort):</strong>
+                     <ul>
+                        <li>- 데이터 크기가 작을 때 효율적입니다. (다른 복잡한 정렬 알고리즘의 기본 케이스로 사용되기도 함)</li>
+                        <li>- 데이터가 이미 거의 정렬되어 있는 경우 매우 빠르게 동작합니다.</li>
+                        <li>- 실시간으로 데이터가 계속 들어오는 '온라인' 상황에서 유용할 수 있습니다.</li>
+                    </ul>
+                </li>
+                <li><strong>병합 정렬 (Merge Sort):</strong>
+                     <ul>
+                        <li>- 데이터 크기가 큰 경우에도 안정적인 성능(O(n log n))을 보장해야 할 때 사용됩니다.</li>
+                        <li>- 외부 정렬(메모리에 모든 데이터를 올릴 수 없을 때)에 유용합니다.</li>
+                        <li>- 안정 정렬이 필요한 경우 (예: 여러 기준으로 정렬할 때) 사용됩니다.</li>
+                    </ul>
+                </li>
+                <li><strong>퀵 정렬 (Quick Sort):</strong>
+                     <ul>
+                        <li>- 평균적으로 가장 빠른 정렬 알고리즘 중 하나로 알려져 있어, 많은 프로그래밍 언어의 표준 라이브러리 정렬 함수 구현에 사용됩니다.</li>
+                        <li>- 추가 메모리 사용량이 비교적 적습니다 (평균 O(log n)).</li>
+                        <li>- 캐시 효율성이 좋은 편입니다.</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="text-center mt-12 py-4 border-t border-gray-300">
+        <p class="text-gray-500 text-sm">정렬 알고리즘 학습 자료</p>
+    </footer>
+
+    <script>
+        // DOM 요소 가져오기
+        const algorithmSelect = document.getElementById('algorithm-select');
+        const sizeSlider = document.getElementById('size-slider');
+        const sizeValue = document.getElementById('size-value');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedValue = document.getElementById('speed-value');
+        const resetButton = document.getElementById('reset-button');
+        const startButton = document.getElementById('start-button');
+        const pauseButton = document.getElementById('pause-button');
+        const resumeButton = document.getElementById('resume-button');
+        const visualizationArea = document.getElementById('visualization-area');
+        const simulationTitle = document.getElementById('simulation-title');
+        const explanationArea = document.getElementById('explanation-area');
+
+        // 전역 변수
+        let array = []; // 정렬할 배열
+        let arraySize = parseInt(sizeSlider.value); // 배열 크기
+        let delay = 1050 - parseInt(speedSlider.value); // 시각화 지연 시간 (ms)
+        let sortingInProgress = false; // 정렬 진행 중 플래그
+        let isPaused = false; // 일시정지 플래그
+        let currentAlgorithm = algorithmSelect.value; // 현재 선택된 알고리즘
+        let forceStop = false; // 정렬 강제 중지 플래그
+        let stepPromise = null; // 일시정지/재개를 위한 Promise
+        let resolveStep = null; // Promise를 resolve하는 함수
+
+        // --- 유틸리티 함수 ---
+
+        // 랜덤 배열 생성
+        function generateArray(size) {
+            array = [];
+            for (let i = 0; i < size; i++) {
+                // 10 ~ 100 사이의 랜덤 정수 생성
+                array.push(Math.floor(Math.random() * 91) + 10);
+            }
+            drawArray(array); // 생성된 배열 시각화
+            setExplanation('배열이 생성되었습니다. 시작 버튼을 누르세요.');
+        }
+
+        // 배열 시각화 (막대 그래프 그리기)
+        function drawArray(arr, highlights = {}) {
+            visualizationArea.innerHTML = ''; // 이전 막대 삭제
+            const maxVal = Math.max(...arr, 100); // 배열 최대값 (최소 높이 확보 위해 100과 비교)
+            const containerWidth = visualizationArea.clientWidth;
+            // 막대 너비 계산 (간격 포함) - 최소 2px 보장
+            const barWidth = Math.max(2, Math.floor(containerWidth / arr.length) - 2);
+
+            arr.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.classList.add('bar');
+                // 높이를 컨테이너 높이 기준으로 % 계산
+                const barHeight = (value / maxVal) * 95; // 최대 높이 95%
+                bar.style.height = `${barHeight}%`;
+                bar.style.width = `${barWidth}px`;
+                // 하이라이트 적용
+                if (highlights.sortedIndices && highlights.sortedIndices.includes(index)) {
+                    bar.classList.add('bar-sorted');
+                } else if (highlights.pivot === index) {
+                     bar.classList.add('bar-pivot');
+                } else if (highlights.comparing && highlights.comparing.includes(index)) {
+                    bar.classList.add('bar-comparing');
+                } else if (highlights.swapping && highlights.swapping.includes(index)) {
+                    bar.classList.add('bar-swapping');
+                }
+                // 막대에 값 표시 (너비가 충분할 경우)
+                if (barWidth > 20) {
+                    const valueSpan = document.createElement('span');
+                    valueSpan.textContent = value;
+                    valueSpan.style.fontSize = '10px';
+                    valueSpan.style.color = 'black';
+                    valueSpan.style.position = 'absolute';
+                    valueSpan.style.bottom = '2px';
+                    valueSpan.style.left = '50%';
+                    valueSpan.style.transform = 'translateX(-50%)';
+                    bar.style.position = 'relative'; // span 위치 기준
+                    bar.appendChild(valueSpan);
+                }
+                visualizationArea.appendChild(bar);
+            });
+        }
+
+        // 지연 함수 (일시정지 기능 포함)
+        async function sleep(ms) {
+            // 강제 중지 플래그 확인
+            if (forceStop) throw new Error('Sorting stopped');
+
+            // 일시정지 상태면 Promise를 생성하고 대기
+            while (isPaused) {
+                 if (forceStop) throw new Error('Sorting stopped'); // 일시정지 중 리셋될 경우 대비
+                 stepPromise = new Promise(resolve => {
+                     resolveStep = resolve;
+                 });
+                 await stepPromise; // resolveStep()이 호출될 때까지 대기
+                 stepPromise = null; // 대기 완료 후 초기화
+                 resolveStep = null;
+            }
+            // 실제 지연 시간 적용
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 설명 업데이트 함수
+        function setExplanation(text) {
+            explanationArea.textContent = text;
+        }
+
+        // UI 상태 업데이트 함수
+        function updateUIState(isSorting) {
+            sortingInProgress = isSorting;
+            startButton.disabled = isSorting;
+            resetButton.disabled = !isSorting && array.length === 0; // 정렬 중이 아니고 배열 없으면 비활성화
+            pauseButton.disabled = !isSorting || isPaused;
+            resumeButton.disabled = !isSorting || !isPaused;
+            algorithmSelect.disabled = isSorting;
+            sizeSlider.disabled = isSorting;
+            speedSlider.disabled = isSorting; // 속도 슬라이더는 정렬 중에도 변경 가능하게 할 수도 있음 (선택사항)
+
+            pauseButton.classList.toggle('hidden', !isSorting || isPaused);
+            resumeButton.classList.toggle('hidden', !isSorting || !isPaused);
+            startButton.classList.toggle('hidden', isSorting); // 시작하면 시작 버튼 숨김
+        }
+
+        // 정렬 완료 시 호출 함수
+        function finishSort(arr) {
+            drawArray(arr, { sortedIndices: arr.map((_, i) => i) }); // 모든 막대를 녹색으로
+            setExplanation('정렬이 완료되었습니다!');
+            updateUIState(false);
+            forceStop = false; // 플래그 초기화
+            isPaused = false; // 일시정지 상태 해제
+        }
+
+        // 정렬 중단/리셋 시 호출 함수
+        function resetSortState() {
+             forceStop = true; // 진행 중인 정렬 중단
+             if (resolveStep) { // 일시정지 상태였다면 해제
+                 resolveStep();
+             }
+             isPaused = false;
+             generateArray(arraySize); // 새 배열 생성 및 초기화
+             setExplanation('리셋되었습니다. 알고리즘을 선택하고 시작 버튼을 누르세요.');
+             updateUIState(false); // UI 상태 초기화
+             simulationTitle.textContent = `${algorithmSelect.options[algorithmSelect.selectedIndex].text} 시뮬레이션`;
+        }
+
+
+        // --- 정렬 알고리즘 구현 (async/await 사용) ---
+
+        // 버블 정렬
+        async function bubbleSort(arr) {
+            let n = arr.length;
+            let swapped;
+            let sortedCount = 0;
+            do {
+                swapped = false;
+                for (let i = 0; i < n - 1 - sortedCount; i++) {
+                    // 현재 비교 대상 하이라이트
+                    drawArray(arr, { comparing: [i, i + 1], sortedIndices: Array.from({length: sortedCount}, (_, k) => n - 1 - k) });
+                    setExplanation(`${i + 1}번째 요소와 ${i + 2}번째 요소를 비교합니다.`);
+                    await sleep(delay);
+
+                    if (arr[i] > arr[i + 1]) {
+                        // 교환 대상 하이라이트
+                        drawArray(arr, { swapping: [i, i + 1], sortedIndices: Array.from({length: sortedCount}, (_, k) => n - 1 - k) });
+                        setExplanation(`${arr[i]}와 ${arr[i+1]}을 교환합니다.`);
+                        await sleep(delay);
+
+                        // 교환 실행
+                        [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                        swapped = true;
+
+                        // 교환 후 상태 표시
+                        drawArray(arr, { swapping: [i, i + 1], sortedIndices: Array.from({length: sortedCount}, (_, k) => n - 1 - k) });
+                        await sleep(delay);
+                    }
+                }
+                sortedCount++; // 마지막 요소는 정렬 완료됨
+                // 한 사이클 완료 후 정렬된 부분 표시
+                drawArray(arr, { sortedIndices: Array.from({length: sortedCount}, (_, k) => n - 1 - k) });
+                await sleep(delay);
+
+            } while (swapped); // 교환이 일어나지 않으면 종료
+        }
+
+        // 선택 정렬
+        async function selectionSort(arr) {
+            let n = arr.length;
+            for (let i = 0; i < n - 1; i++) {
+                let minIdx = i;
+                // 최소값 찾는 과정 시각화 (현재 최소값 후보는 보라색, 비교 대상은 노란색)
+                drawArray(arr, { pivot: minIdx, comparing: [minIdx], sortedIndices: Array.from({length: i}, (_, k) => k) });
+                setExplanation(`${i + 1}번째 위치에 들어갈 최소값을 찾는 중... (현재 최소값 후보: ${arr[minIdx]})`);
+                await sleep(delay);
+
+                for (let j = i + 1; j < n; j++) {
+                    // 비교 대상 표시
+                    drawArray(arr, { pivot: minIdx, comparing: [minIdx, j], sortedIndices: Array.from({length: i}, (_, k) => k) });
+                    setExplanation(`${arr[minIdx]}와 ${arr[j]}를 비교합니다.`);
+                    await sleep(delay);
+
+                    if (arr[j] < arr[minIdx]) {
+                        minIdx = j;
+                        // 새로운 최소값 후보 표시
+                         drawArray(arr, { pivot: minIdx, comparing: [j], sortedIndices: Array.from({length: i}, (_, k) => k) });
+                         setExplanation(`더 작은 값 ${arr[minIdx]} 발견! 최소값 후보 변경.`);
+                         await sleep(delay);
+                    }
+                }
+
+                // 최소값을 찾았으면 교환 (i와 minIdx가 다를 경우)
+                if (minIdx !== i) {
+                    drawArray(arr, { swapping: [i, minIdx], sortedIndices: Array.from({length: i}, (_, k) => k) });
+                    setExplanation(`${arr[i]}와 최소값 ${arr[minIdx]}를 교환합니다.`);
+                    await sleep(delay);
+
+                    [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+
+                    drawArray(arr, { swapping: [i, minIdx], sortedIndices: Array.from({length: i}, (_, k) => k) });
+                    await sleep(delay);
+                }
+                 // i번째 요소 정렬 완료 표시
+                 drawArray(arr, { sortedIndices: Array.from({length: i + 1}, (_, k) => k) });
+                 await sleep(delay);
+            }
+        }
+
+        // 삽입 정렬
+        async function insertionSort(arr) {
+            let n = arr.length;
+            for (let i = 1; i < n; i++) {
+                let key = arr[i];
+                let j = i - 1;
+
+                // 삽입할 요소(key) 표시 (보라색)
+                drawArray(arr, { pivot: i, sortedIndices: Array.from({length: i}, (_, k) => k) });
+                setExplanation(`${i+1}번째 요소 (${key})를 정렬된 부분에 삽입합니다.`);
+                await sleep(delay);
+
+                // key를 넣을 위치를 찾기 위해 왼쪽으로 이동하며 비교
+                while (j >= 0 && arr[j] > key) {
+                    // 비교 대상 표시 (노란색)
+                    drawArray(arr, { pivot: i, comparing: [j, j+1], sortedIndices: Array.from({length: i}, (_, k) => k) });
+                    setExplanation(`${arr[j]}가 ${key}보다 크므로 오른쪽으로 이동합니다.`);
+                    await sleep(delay);
+
+                    arr[j + 1] = arr[j]; // 요소를 오른쪽으로 이동
+
+                    // 이동 결과 표시 (빨간색)
+                    drawArray(arr, { pivot: i, swapping: [j, j+1], sortedIndices: Array.from({length: i}, (_, k) => k) });
+                    await sleep(delay);
+
+                    j--;
+                }
+                // 찾은 위치에 key 삽입
+                arr[j + 1] = key;
+
+                // 삽입 완료 표시
+                drawArray(arr, { pivot: j+1, sortedIndices: Array.from({length: i + 1}, (_, k) => k) });
+                 setExplanation(`${key}를 ${j+2}번째 위치에 삽입 완료.`);
+                await sleep(delay);
+            }
+        }
+
+        // 병합 정렬 (실제 정렬 로직)
+        async function mergeSortRecursive(arr, start, end) {
+            if (start >= end) {
+                return; // 기본 케이스: 배열 크기가 1 이하
+            }
+
+            const mid = Math.floor((start + end) / 2);
+
+            // 왼쪽 부분 배열 정렬
+            setExplanation(`왼쪽 부분 배열 (${start + 1} ~ ${mid + 1})을 정렬합니다.`);
+            await sleep(delay);
+            await mergeSortRecursive(arr, start, mid);
+
+            // 오른쪽 부분 배열 정렬
+            setExplanation(`오른쪽 부분 배열 (${mid + 2} ~ ${end + 1})을 정렬합니다.`);
+            await sleep(delay);
+            await mergeSortRecursive(arr, mid + 1, end);
+
+            // 두 부분 배열 병합
+            setExplanation(`정렬된 두 부분 배열 (${start + 1} ~ ${mid + 1}, ${mid + 2} ~ ${end + 1})을 병합합니다.`);
+            await sleep(delay);
+            await merge(arr, start, mid, end);
+        }
+
+        // 병합 함수 (병합 정렬용)
+        async function merge(arr, start, mid, end) {
+            let leftSize = mid - start + 1;
+            let rightSize = end - mid;
+
+            // 임시 배열 생성
+            let leftArr = new Array(leftSize);
+            let rightArr = new Array(rightSize);
+
+            // 데이터 복사
+            for (let i = 0; i < leftSize; i++) leftArr[i] = arr[start + i];
+            for (let j = 0; j < rightSize; j++) rightArr[j] = arr[mid + 1 + j];
+
+            let i = 0, j = 0, k = start; // i: leftArr 인덱스, j: rightArr 인덱스, k: 원래 arr 인덱스
+
+            // 두 임시 배열 비교 및 병합
+            while (i < leftSize && j < rightSize) {
+                 // 비교 대상 하이라이트 (원래 배열 위치 기준)
+                 drawArray(arr, { comparing: [start + i, mid + 1 + j] });
+                 setExplanation(`${leftArr[i]}와 ${rightArr[j]}를 비교하여 병합 중...`);
+                 await sleep(delay);
+
+                if (leftArr[i] <= rightArr[j]) {
+                    arr[k] = leftArr[i];
+                    i++;
+                } else {
+                    arr[k] = rightArr[j];
+                    j++;
+                }
+                 // 병합된 요소 표시 (원래 배열 위치 기준, 빨간색으로 임시 표시)
+                 drawArray(arr, { swapping: [k] });
+                 await sleep(delay);
+                k++;
+            }
+
+            // 남은 요소들 복사
+            while (i < leftSize) {
+                arr[k] = leftArr[i];
+                 drawArray(arr, { swapping: [k] }); // 남은 요소 이동 표시
+                 await sleep(delay);
+                i++;
+                k++;
+            }
+            while (j < rightSize) {
+                arr[k] = rightArr[j];
+                 drawArray(arr, { swapping: [k] }); // 남은 요소 이동 표시
+                 await sleep(delay);
+                j++;
+                k++;
+            }
+            // 병합 완료 후 해당 범위 표시 (녹색으로 임시 표시)
+            const mergedIndices = Array.from({length: end - start + 1}, (_, idx) => start + idx);
+            drawArray(arr, { sortedIndices: mergedIndices });
+            await sleep(delay);
+        }
+
+        // 병합 정렬 시작 함수
+        async function mergeSort(arr) {
+            await mergeSortRecursive(arr, 0, arr.length - 1);
+        }
+
+        // 퀵 정렬 (실제 정렬 로직)
+        async function quickSortRecursive(arr, low, high) {
+            if (low < high) {
+                // 분할 및 피벗 위치 얻기
+                setExplanation(`부분 배열 (${low + 1} ~ ${high + 1})을 분할합니다.`);
+                await sleep(delay);
+                let pivotIndex = await partition(arr, low, high);
+
+                // 피벗 기준 왼쪽 부분 배열 정렬
+                 setExplanation(`피벗(${arr[pivotIndex]}) 왼쪽 부분 배열 (${low + 1} ~ ${pivotIndex})을 정렬합니다.`);
+                 await sleep(delay);
+                await quickSortRecursive(arr, low, pivotIndex - 1);
+
+                // 피벗 기준 오른쪽 부분 배열 정렬
+                 setExplanation(`피벗(${arr[pivotIndex]}) 오른쪽 부분 배열 (${pivotIndex + 2} ~ ${high + 1})을 정렬합니다.`);
+                 await sleep(delay);
+                await quickSortRecursive(arr, pivotIndex + 1, high);
+            } else if (low === high) {
+                 // 크기가 1인 배열은 이미 정렬됨 (시각적 표시)
+                 drawArray(arr, { sortedIndices: [low] });
+                 await sleep(delay);
+            }
+        }
+
+        // 분할 함수 (퀵 정렬용 - Lomuto partition scheme)
+        async function partition(arr, low, high) {
+            let pivot = arr[high]; // 마지막 요소를 피벗으로 선택
+            let i = low - 1; // 작은 요소들의 마지막 위치
+
+            // 피벗 표시 (보라색)
+            drawArray(arr, { pivot: high });
+            setExplanation(`피벗으로 ${pivot}(${high+1}번째)을 선택했습니다.`);
+            await sleep(delay);
+
+            for (let j = low; j < high; j++) {
+                // 현재 요소와 피벗 비교 (노란색)
+                drawArray(arr, { pivot: high, comparing: [j, high] });
+                 setExplanation(`${arr[j]}와 피벗 ${pivot}을 비교합니다.`);
+                await sleep(delay);
+
+                if (arr[j] < pivot) {
+                    i++;
+                    // 작은 요소를 왼쪽으로 이동 (교환)
+                    drawArray(arr, { pivot: high, swapping: [i, j] });
+                    setExplanation(`${arr[j]}가 피벗보다 작으므로 ${arr[i]}와 교환합니다.`);
+                    await sleep(delay);
+
+                    [arr[i], arr[j]] = [arr[j], arr[i]]; // 교환
+
+                    // 교환 후 상태 표시
+                    drawArray(arr, { pivot: high, swapping: [i, j] });
+                    await sleep(delay);
+                }
+            }
+
+            // 피벗을 올바른 위치로 이동 (i+1 위치)
+            drawArray(arr, { swapping: [i + 1, high] });
+             setExplanation(`피벗 ${pivot}을 최종 위치(${i+2}번째)로 이동합니다.`);
+            await sleep(delay);
+
+            [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]]; // 피벗 교환
+
+             // 최종 피벗 위치 표시 (녹색) 및 반환
+             drawArray(arr, { sortedIndices: [i + 1] });
+             await sleep(delay);
+
+            return i + 1; // 피벗의 최종 인덱스 반환
+        }
+
+        // 퀵 정렬 시작 함수
+        async function quickSort(arr) {
+            await quickSortRecursive(arr, 0, arr.length - 1);
+        }
+
+
+        // --- 이벤트 리스너 설정 ---
+
+        // 알고리즘 선택 변경 시
+        algorithmSelect.addEventListener('change', (e) => {
+            currentAlgorithm = e.target.value;
+            simulationTitle.textContent = `${e.target.options[e.target.selectedIndex].text} 시뮬레이션`;
+            // 정렬 중이 아닐 때만 리셋
+            if (!sortingInProgress) {
+                 resetSortState(); // 알고리즘 바꾸면 배열 초기화
+            }
+        });
+
+        // 배열 크기 슬라이더 변경 시
+        sizeSlider.addEventListener('input', (e) => {
+            arraySize = parseInt(e.target.value);
+            sizeValue.textContent = arraySize;
+            // 정렬 중이 아닐 때만 새 배열 생성
+            if (!sortingInProgress) {
+                generateArray(arraySize);
+            }
+        });
+
+        // 속도 슬라이더 변경 시
+        speedSlider.addEventListener('input', (e) => {
+            // 슬라이더 값(50~1000)을 지연 시간(1000~50ms)으로 변환
+            delay = 1050 - parseInt(e.target.value);
+            speedValue.textContent = `${parseInt(e.target.value)}ms`;
+        });
+
+        // 리셋 버튼 클릭 시
+        resetButton.addEventListener('click', resetSortState);
+
+        // 시작 버튼 클릭 시
+        startButton.addEventListener('click', async () => {
+            if (sortingInProgress) return; // 이미 정렬 중이면 무시
+
+            forceStop = false; // 중지 플래그 초기화
+            isPaused = false;  // 일시정지 플래그 초기화
+            updateUIState(true); // UI를 정렬 중 상태로 변경
+            simulationTitle.textContent = `${algorithmSelect.options[algorithmSelect.selectedIndex].text} 시뮬레이션 중...`;
+            setExplanation('정렬을 시작합니다...');
+
+            // 배열 복사 (원본 유지)
+            let arrCopy = [...array];
+
+            try {
+                // 선택된 알고리즘 실행
+                switch (currentAlgorithm) {
+                    case 'bubble':
+                        await bubbleSort(arrCopy);
+                        break;
+                    case 'selection':
+                        await selectionSort(arrCopy);
+                        break;
+                    case 'insertion':
+                        await insertionSort(arrCopy);
+                        break;
+                    case 'merge':
+                        await mergeSort(arrCopy);
+                        break;
+                    case 'quick':
+                        await quickSort(arrCopy);
+                        break;
+                }
+                 // 정렬 완료 (중단되지 않았을 경우)
+                 if (!forceStop) {
+                    finishSort(arrCopy);
+                 }
+            } catch (error) {
+                // 강제 중단 시 오류 처리
+                if (error.message === 'Sorting stopped') {
+                    console.log('Sorting process was stopped.');
+                    // resetSortState()가 이미 UI 정리함
+                } else {
+                    console.error('An error occurred during sorting:', error);
+                    setExplanation(`오류 발생: ${error.message}`);
+                    updateUIState(false); // 오류 발생 시 UI 초기화
+                }
+            }
+        });
+
+        // 일시정지 버튼 클릭 시
+        pauseButton.addEventListener('click', () => {
+            if (!sortingInProgress || isPaused) return;
+            isPaused = true;
+            setExplanation('일시정지됨. 재개 버튼을 누르세요.');
+            updateUIState(true); // UI 상태 업데이트 (재개 버튼 표시)
+        });
+
+         // 재개 버튼 클릭 시
+        resumeButton.addEventListener('click', () => {
+            if (!sortingInProgress || !isPaused) return;
+            isPaused = false;
+            setExplanation('정렬을 재개합니다...');
+            if (resolveStep) {
+                resolveStep(); // 대기 중인 sleep Promise를 해결
+            }
+            updateUIState(true); // UI 상태 업데이트 (일시정지 버튼 표시)
+        });
+
+
+        // --- 초기화 ---
+        window.onload = () => {
+            generateArray(arraySize); // 페이지 로드 시 초기 배열 생성
+            simulationTitle.textContent = `${algorithmSelect.options[algorithmSelect.selectedIndex].text} 시뮬레이션`;
+            updateUIState(false); // 초기 UI 상태 설정
+        };
+
+    </script>
+</body>
+</html>
