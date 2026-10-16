@@ -135,10 +135,7 @@
                         <tr>
                             <th>알고리즘</th>
                             <th>시간 복잡도 (최선)</th>
-                            <th>시간 복잡도 (평균)</th>
                             <th>시간 복잡도 (최악)</th>
-                            <th>공간 복잡도</th>
-                            <th>안정성</th>
                             <th>장점</th>
                             <th>단점</th>
                         </tr>
@@ -148,59 +145,42 @@
                             <td>버블 정렬</td>
                             <td>O(n²)</td>
                             <td>O(n²)</td>
-                            <td>O(n²)</td>
-                            <td>O(1)</td>
-                            <td>Stable</td>
-                            <td>구현이 매우 간단함, 안정 정렬</td>
-                            <td>데이터가 많을수록 매우 비효율적</td>
+                            <td>구현이 매우 간단하고 직관적임</td>
+                            <td>데이터가 많을수록 속도가 매우 느림</td>
                         </tr>
                         <tr>
                             <td>선택 정렬</td>
                             <td>O(n²)</td>
                             <td>O(n²)</td>
-                            <td>O(n²)</td>
-                            <td>O(1)</td>
-                            <td>Unstable</td>
-                            <td>구현이 간단함, 자료 이동 횟수가 적음</td>
-                            <td>데이터가 많을수록 비효율적, 불안정 정렬</td>
+                            <td>구현이 간단하며, 값 교환(swap) 횟수가 적음</td>
+                            <td>데이터가 많을수록 속도가 매우 느림</td>
                         </tr>
                         <tr>
                             <td>삽입 정렬</td>
                             <td>O(n)</td>
                             <td>O(n²)</td>
-                            <td>O(n²)</td>
-                            <td>O(1)</td>
-                            <td>Stable</td>
-                            <td>데이터가 거의 정렬된 경우 매우 효율적, 안정 정렬</td>
-                            <td>데이터가 많고 역순에 가까울수록 비효율적</td>
+                            <td>데이터가 이미 거의 정렬되어 있는 경우 매우 빠름</td>
+                            <td>데이터가 많고 역순에 가까울수록 느림</td>
                         </tr>
                         <tr>
                             <td>병합 정렬</td>
                             <td>O(n log n)</td>
                             <td>O(n log n)</td>
-                            <td>O(n log n)</td>
-                            <td>O(n)</td>
-                            <td>Stable</td>
-                            <td>항상 O(n log n) 성능 보장, 안정 정렬</td>
-                            <td>추가적인 메모리 공간(O(n)) 필요</td>
+                            <td>어떤 데이터든 항상 일정한 빠른 속도를 보장함</td>
+                            <td>다른 정렬에 비해 알고리즘 구조가 복잡함</td>
                         </tr>
                         <tr>
                             <td>퀵 정렬</td>
                             <td>O(n log n)</td>
-                            <td>O(n log n)</td>
                             <td>O(n²)</td>
-                            <td>O(log n) ~ O(n)</td>
-                            <td>Unstable</td>
-                            <td>평균적으로 매우 빠름, 추가 메모리 공간 적게 사용 (평균)</td>
-                            <td>최악의 경우 O(n²) 성능, 불안정 정렬, 피벗 선택 중요</td>
+                            <td>일반적으로 가장 빠르고 효율적임</td>
+                            <td>피벗 선택에 따라 최악의 경우 속도가 느려질 수 있음</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
              <p class="mt-4 text-sm text-gray-600">
-                * **시간 복잡도**: 알고리즘이 입력 크기(n)에 따라 실행되는 데 걸리는 시간을 나타냅니다. 숫자가 작을수록 효율적입니다.<br>
-                * **공간 복잡도**: 알고리즘이 실행되는 동안 사용하는 추가적인 메모리 공간의 양을 나타냅니다.<br>
-                * **안정성 (Stable)**: 정렬 후에도 값이 같은 요소들의 상대적인 순서가 유지되는지 여부를 나타냅니다.
+                * <strong>시간 복잡도</strong>: 데이터의 개수(n)에 따라 알고리즘이 작업을 완료하는 데 걸리는 대략적인 시간(연산 횟수)을 나타냅니다.
             </p>
         </section>
 
@@ -209,137 +189,116 @@
             <div class="space-y-6">
                 <div>
                     <h3 class="text-lg font-semibold mb-2 text-gray-700">버블 정렬 (Bubble Sort)</h3>
-                    <pre><code class="language-python">
-def bubble_sort(arr):
-    n = len(arr)
-    for i in range(n):
-        swapped = False
-        # 마지막 i개 요소는 이미 정렬됨
-        for j in range(0, n - i - 1):
-            # 인접한 두 요소를 비교하여 필요시 교환
-            if arr[j] > arr[j + 1]:
-                arr[j], arr[j + 1] = arr[j + 1], arr[j]
-                swapped = True
-        # 이번 패스에서 교환이 없었다면 이미 정렬된 상태
-        if not swapped:
-            break
-    return arr
-                    </code></pre>
+                    <pre><code class="language-python">data = [50, 23, 9, 18, 61, 32]
+swap_count = 0
+n = len(data)
+
+for i in range(n - 1):
+    for j in range(n - 1 - i):
+        if data[j] > data[j + 1]:
+            data[j], data[j + 1] = data[j + 1], data[j]
+            swap_count += 1
+
+print("정렬 결과:", data)
+print("교환 횟수:", swap_count)</code></pre>
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold mb-2 text-gray-700">선택 정렬 (Selection Sort)</h3>
-                    <pre><code class="language-python">
-def selection_sort(arr):
-    n = len(arr)
-    for i in range(n):
-        # 현재 인덱스를 최소값의 인덱스로 가정
-        min_idx = i
-        # i+1부터 끝까지 탐색하며 최소값 인덱스 찾기
-        for j in range(i + 1, n):
-            if arr[j] < arr[min_idx]:
-                min_idx = j
-        # 찾은 최소값과 현재 위치(i)의 값을 교환
-        arr[i], arr[min_idx] = arr[min_idx], arr[i]
-    return arr
-                    </code></pre>
+                    <pre><code class="language-python">data = [50, 23, 9, 18, 61, 32]
+swap_count = 0
+n = len(data)
+
+for i in range(n - 1):
+    min_idx = i
+    for j in range(i + 1, n):
+        if data[j] < data[min_idx]:
+            min_idx = j
+    if min_idx != i:
+        data[i], data[min_idx] = data[min_idx], data[i]
+        swap_count += 1
+
+print("정렬 결과:", data)
+print("교환 횟수:", swap_count)</code></pre>
                 </div>
-                 <div>
+                <div>
                     <h3 class="text-lg font-semibold mb-2 text-gray-700">삽입 정렬 (Insertion Sort)</h3>
-                    <pre><code class="language-python">
-def insertion_sort(arr):
-    n = len(arr)
-    # 첫 번째 요소는 이미 정렬된 것으로 간주 (i=1부터 시작)
-    for i in range(1, n):
-        key = arr[i] # 현재 삽입할 요소
-        j = i - 1
-        # key보다 큰 요소들을 오른쪽으로 한 칸씩 이동
-        while j >= 0 and key < arr[j]:
-            arr[j + 1] = arr[j]
-            j -= 1
-        # 적절한 위치에 key 삽입
-        arr[j + 1] = key
-    return arr
-                    </code></pre>
+                    <pre><code class="language-python">data = [50, 23, 9, 18, 61, 32]
+shift_count = 0
+n = len(data)
+
+for i in range(1, n):
+    key = data[i]
+    j = i - 1
+    while j >= 0 and data[j] > key:
+        data[j + 1] = data[j]
+        shift_count += 1
+        j -= 1
+    data[j + 1] = key
+
+print("정렬 결과:", data)
+print("이동 횟수:", shift_count)</code></pre>
                 </div>
-                 <div>
+                <div>
                     <h3 class="text-lg font-semibold mb-2 text-gray-700">병합 정렬 (Merge Sort)</h3>
-                    <pre><code class="language-python">
-def merge_sort(arr):
-    if len(arr) > 1:
-        mid = len(arr) // 2 # 중간점 찾기
-        left_half = arr[:mid] # 왼쪽 부분 배열
-        right_half = arr[mid:] # 오른쪽 부분 배열
+                    <pre><code class="language-python">data = [50, 23, 9, 18, 61, 32]
 
-        # 재귀적으로 각 부분을 정렬
-        merge_sort(left_half)
-        merge_sort(right_half)
+# 1. 각 숫자를 1개짜리 리스트로 분리
+lists = [[x] for x in data]
 
-        # 정렬된 두 부분을 병합
-        i = j = k = 0 # i: left_half 인덱스, j: right_half 인덱스, k: arr 인덱스
-        while i < len(left_half) and j < len(right_half):
-            if left_half[i] < right_half[j]:
-                arr[k] = left_half[i]
-                i += 1
-            else:
-                arr[k] = right_half[j]
-                j += 1
-            k += 1
+# 2. 리스트가 1개로 합쳐질 때까지 2개씩 병합
+while len(lists) > 1:
+    left = lists.pop(0)
+    right = lists.pop(0)
+    merged = []
 
-        # 남은 요소들 처리
-        while i < len(left_half):
-            arr[k] = left_half[i]
-            i += 1
-            k += 1
-        while j < len(right_half):
-            arr[k] = right_half[j]
-            j += 1
-            k += 1
-    return arr
-                    </code></pre>
+    # 두 리스트의 맨 앞 값을 비교하여 작은 순서대로 추가
+    while left and right:
+        if left[0] <= right[0]:
+            merged.append(left.pop(0))
+        else:
+            merged.append(right.pop(0))
+
+    # 남아있는 요소들 추가
+    merged.extend(left + right)
+    lists.append(merged)
+
+data = lists[0]
+print("정렬 결과:", data)</code></pre>
                 </div>
-                 <div>
+                <div>
                     <h3 class="text-lg font-semibold mb-2 text-gray-700">퀵 정렬 (Quick Sort)</h3>
-                    <pre><code class="language-python">
-def quick_sort(arr):
-    # 내부 함수로 재귀 구현 (시작, 끝 인덱스 사용)
-    def _quick_sort_recursive(items, low, high):
-        if low < high:
-            # 분할 (Partition) 후 피벗 위치 반환
-            pivot_index = _partition(items, low, high)
-            # 피벗 기준 왼쪽 부분 배열 정렬
-            _quick_sort_recursive(items, low, pivot_index - 1)
-            # 피벗 기준 오른쪽 부분 배열 정렬
-            _quick_sort_recursive(items, pivot_index + 1, high)
+                    <pre><code class="language-python">data = [50, 23, 9, 18, 61, 32]
 
-    # 분할 함수 (Hoare partition scheme 사용 예시)
-    def _partition(items, low, high):
-        pivot = items[low] # 첫 번째 요소를 피벗으로 선택 (다양한 전략 가능)
-        left = low + 1
-        right = high
+# 분할할 묶음들을 보관하는 목록
+groups = [data]
+result = []
 
-        done = False
-        while not done:
-            # 왼쪽에서 피벗보다 큰 값 찾기
-            while left <= right and items[left] <= pivot:
-                left += 1
-            # 오른쪽에서 피벗보다 작은 값 찾기
-            while right >= left and items[right] >= pivot:
-                right -= 1
+while groups:
+    current = groups.pop()
 
-            if right < left: # 인덱스가 엇갈리면 분할 완료
-                done = True
-            else: # 찾은 두 값을 교환
-                items[left], items[right] = items[right], items[left]
+    # 원소가 1개 이하면 이미 정렬된 상태
+    if len(current) <= 1:
+        result.extend(current)
+        continue
 
-        # 피벗과 오른쪽 포인터 위치의 값을 교환하여 피벗 위치 확정
-        items[low], items[right] = items[right], items[low]
-        return right # 피벗의 최종 위치 반환
+    pivot = current[0]
+    left = []
+    right = []
 
-    # 실제 정렬 시작
-    _quick_sort_recursive(arr, 0, len(arr) - 1)
-    return arr
+    # 피벗을 기준으로 작은 값은 left, 큰 값은 right로 분리
+    for x in current[1:]:
+        if x <= pivot:
+            left.append(x)
+        else:
+            right.append(x)
 
-                    </code></pre>
+    # 오른쪽 그룹, 피벗, 왼쪽 그룹 순서로 담기
+    groups.append(right)
+    groups.append([pivot])
+    groups.append(left)
+
+data = result
+print("정렬 결과:", data)</code></pre>
                 </div>
             </div>
         </section>
@@ -350,34 +309,31 @@ def quick_sort(arr):
                 <li><strong>버블 정렬 (Bubble Sort):</strong>
                     <ul>
                         <li>- 교육적인 목적으로 알고리즘의 기본 원리를 설명할 때 주로 사용됩니다.</li>
-                        <li>- 데이터 크기가 매우 작거나, 코드를 극도로 단순하게 유지해야 할 때 제한적으로 사용될 수 있습니다.</li>
+                        <li>- 데이터 크기가 매우 작거나 코드를 단순하게 유지해야 할 때 사용됩니다.</li>
                     </ul>
                 </li>
                 <li><strong>선택 정렬 (Selection Sort):</strong>
                      <ul>
-                        <li>- 버블 정렬과 마찬가지로 교육용으로 많이 쓰입니다.</li>
-                        <li>- 쓰기(swap) 연산이 비용이 많이 드는 경우 (예: 플래시 메모리)에 고려될 수 있습니다 (이론적으로).</li>
+                        <li>- 버블 정렬과 마찬가지로 알고리즘 개념 학습용으로 많이 쓰입니다.</li>
+                        <li>- 데이터의 교환 횟수를 최소화해야 하는 상황에서 유용합니다.</li>
                     </ul>
                 </li>
                 <li><strong>삽입 정렬 (Insertion Sort):</strong>
                      <ul>
-                        <li>- 데이터 크기가 작을 때 효율적입니다. (다른 복잡한 정렬 알고리즘의 기본 케이스로 사용되기도 함)</li>
-                        <li>- 데이터가 이미 거의 정렬되어 있는 경우 매우 빠르게 동작합니다.</li>
-                        <li>- 실시간으로 데이터가 계속 들어오는 '온라인' 상황에서 유용할 수 있습니다.</li>
+                        <li>- 데이터 크기가 작거나, 데이터가 이미 거의 정렬되어 있는 경우 매우 빠릅니다.</li>
+                        <li>- 새로운 데이터가 하나씩 계속 추가되는 상황에서 정렬을 유지할 때 유용합니다.</li>
                     </ul>
                 </li>
                 <li><strong>병합 정렬 (Merge Sort):</strong>
                      <ul>
-                        <li>- 데이터 크기가 큰 경우에도 안정적인 성능(O(n log n))을 보장해야 할 때 사용됩니다.</li>
-                        <li>- 외부 정렬(메모리에 모든 데이터를 올릴 수 없을 때)에 유용합니다.</li>
-                        <li>- 안정 정렬이 필요한 경우 (예: 여러 기준으로 정렬할 때) 사용됩니다.</li>
+                        <li>- 데이터 양이 많더라도 항상 일정한 빠른 속도(O(n log n))를 보장해야 할 때 사용됩니다.</li>
+                        <li>- 분할 정복(Divide and Conquer) 개념을 학습할 때 대표적인 예시로 활용됩니다.</li>
                     </ul>
                 </li>
                 <li><strong>퀵 정렬 (Quick Sort):</strong>
                      <ul>
-                        <li>- 평균적으로 가장 빠른 정렬 알고리즘 중 하나로 알려져 있어, 많은 프로그래밍 언어의 표준 라이브러리 정렬 함수 구현에 사용됩니다.</li>
-                        <li>- 추가 메모리 사용량이 비교적 적습니다 (평균 O(log n)).</li>
-                        <li>- 캐시 효율성이 좋은 편입니다.</li>
+                        <li>- 평균적으로 속도가 매우 빨라 실제 다양한 프로그래밍 언어와 시스템에서 널리 활용됩니다.</li>
+                        <li>- 기준값(피벗)을 정하고 둘로 나누는 직관적인 원리로 동작합니다.</li>
                     </ul>
                 </li>
             </ul>
